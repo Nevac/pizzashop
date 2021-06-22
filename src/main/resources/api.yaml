@@ -1,0 +1,272 @@
+openapi: 3.1.0
+info:
+  title: api
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  '/pizza/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Get User Info by User ID
+      tags: []
+      responses:
+        '200':
+          description: Pizza Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pizza'
+              examples: {}
+        '404':
+          description: Pizza Not Found
+      operationId: get-pizza-id
+      description: Retrieve the information of the pizza with the matching pizza ID.
+    put:
+      summary: ''
+      operationId: put-pizza-id
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Pizza Not Found
+        '500':
+          description: Internal Server Error
+      description: Update the pizza the matching pizza ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                active:
+                  type: boolean
+              required:
+                - name
+                - description
+                - price
+        description: Post the necessary fields for the API to upadte the pizza.
+    delete:
+      summary: ''
+      operationId: delete-pizza-id
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Pizza Not Found
+        '500':
+          description: Internal Server Error
+      description: Delete the pizza the matching pizza ID.
+  /pizza:
+    post:
+      summary: Create New User
+      operationId: post-pizza
+      responses:
+        '201':
+          description: Pizza Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pizza'
+              examples: {}
+        '412':
+          description: Missing Required Information
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                active:
+                  type: boolean
+              required:
+                - name
+                - description
+                - price
+            examples: {}
+        description: Post the necessary fields for the API to create a new pizza.
+      description: Create a new pizza.
+    parameters: []
+    get:
+      summary: ''
+      operationId: get-pizzas
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Pizza'
+      description: Retrieve all pizzas.
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: showInactive
+          description: Show inactive pizzas (Default false)
+  /order:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Order'
+      operationId: get-order
+      description: Retrieve all orders.
+    post:
+      summary: ''
+      operationId: post-order
+      responses:
+        '201':
+          description: Order Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '412':
+          description: Precondition Failed
+        '500':
+          description: Internal Server Error
+      description: Create a new order.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                phone:
+                  type: string
+                status:
+                  type: string
+                pizzaIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - address
+                - phone
+                - status
+                - pizzaIds
+        description: Post the necessary fields for the API to create a new order.
+  '/order/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: Order Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order Not Found
+      operationId: get-order-id
+      description: Retrieve the information of the order with the matching order ID.
+    put:
+      summary: ''
+      operationId: put-order-id
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Order Not Found
+        '500':
+          description: Internal Server Error
+      description: Update the order the matching order ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                phone:
+                  type: string
+                status:
+                  type: string
+                pizzaIds:
+                  type: array
+                  items:
+                    type: string
+        description: Post the necessary fields for the API to update the order.
+    delete:
+      summary: ''
+      operationId: delete-order-id
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Order Not Found
+        '500':
+          description: Internal Server Error
+      description: Delete the pizza the matching order ID.
+components:
+  schemas:
+    Pizza:
+      title: Pizza
+      type: object
+      description: ''
+      examples: []
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        active:
+          type: boolean
+    Order:
+      title: Order
+      type: object
+      properties:
+        id:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+        pizzas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pizza'
+      examples: []
