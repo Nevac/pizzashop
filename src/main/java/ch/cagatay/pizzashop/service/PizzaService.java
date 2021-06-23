@@ -50,8 +50,7 @@ public class PizzaService {
         pizza.setName(pizzaDto.getName());
         pizza.setDescription(pizzaDto.getDescription());
         pizza.setPrice(pizzaDto.getPrice());
-        pizza.setActive(pizzaDto.getActive());
-
+        pizza.setActive(pizzaDto.isActive());
         pizzaRepository.save(pizza);
     }
 

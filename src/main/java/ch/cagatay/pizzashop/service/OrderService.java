@@ -36,11 +36,11 @@ public class OrderService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public OrderDtoGet createOrder(OrderDtoPost orderDtoPost) {
-        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzas());
+    public OrderDtoGet createOrder(OrderDtoPost orderDtoPost) throws ResourceNotFoundException {
+        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzaIds());
 
         Order order = new Order(
-                orderDtoPost.getAdress(),
+                orderDtoPost.getAddress(),
                 orderDtoPost.getPhone(),
                 orderDtoPost.getStatus(),
                 pizzas
@@ -57,7 +57,7 @@ public class OrderService {
 
     public void updateOrder(Long id, OrderDtoPost orderDtoPost) throws ResourceNotFoundException {
         Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(resourceName));
-        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzas());
+        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzaIds());
 
         order.setAddress(orderDtoPost.getAddress());
         order.setPhone(orderDtoPost.getPhone());

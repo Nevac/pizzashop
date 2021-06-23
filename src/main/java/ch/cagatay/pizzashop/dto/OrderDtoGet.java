@@ -1,10 +1,14 @@
 package ch.cagatay.pizzashop.dto;
 
 import ch.cagatay.pizzashop.model.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.util.List;
 
+@JsonAutoDetect
+@Data
 public class OrderDtoGet {
     @JsonProperty("id")
     Long id;
