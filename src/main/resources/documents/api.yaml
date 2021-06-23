@@ -3,7 +3,7 @@ info:
   title: api
   version: '1.0'
 servers:
-  - url: 'http://localhost:8080'
+  - url: 'http://localhost:3000'
 paths:
   '/pizza/{id}':
     parameters:
@@ -27,14 +27,17 @@ paths:
           description: Pizza Not Found
       operationId: get-pizza-id
       description: Retrieve the information of the pizza with the matching pizza ID.
+      parameters: []
     put:
       summary: ''
       operationId: put-pizza-id
       responses:
         '204':
-          description: No Content
+          description: Updated Pizza
         '404':
           description: Pizza Not Found
+        '422':
+          description: Unprocessable Body Entity
         '500':
           description: Internal Server Error
       description: Update the pizza the matching pizza ID.
@@ -80,8 +83,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Pizza'
               examples: {}
-        '412':
-          description: Missing Required Information
+        '422':
+          description: Unprocessable Body Entity
         '500':
           description: Internal Server Error
       requestBody:
@@ -148,8 +151,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
-        '412':
-          description: Precondition Failed
+        '422':
+          description: Unprocessable Body Entity
         '500':
           description: Internal Server Error
       description: Create a new order.
@@ -201,9 +204,11 @@ paths:
       operationId: put-order-id
       responses:
         '204':
-          description: No Content
+          description: Updated Order
         '404':
           description: Order Not Found
+        '422':
+          description: Unprocessable Body Entity
         '500':
           description: Internal Server Error
       description: Update the order the matching order ID.
