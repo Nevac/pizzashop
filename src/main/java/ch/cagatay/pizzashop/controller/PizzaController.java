@@ -1,6 +1,13 @@
 package ch.cagatay.pizzashop.controller;
 
 import ch.cagatay.pizzashop.dto.PizzaDto;
+import ch.cagatay.pizzashop.model.Pizza;
+import ch.cagatay.pizzashop.service.PizzaService;
+import ch.cagatay.pizzashop.service.PizzaShopService;
+import ch.cagatay.pizzashop.specifications.PizzaSpecificationBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +18,19 @@ import java.util.List;
 @RequestMapping("/pizza")
 public class PizzaController {
 
+    private final PizzaService pizzaService;
+
+    @Autowired
+    public PizzaController(PizzaService pizzaService) {
+        this.pizzaService = pizzaService;
+    }
+
     @GetMapping
-    ResponseEntity<List<PizzaDto>> getPizzas(@RequestParam(required = false) boolean showInactive) {
-        throw new UnsupportedOperationException();
+    ResponseEntity<List<PizzaDto>> getPizzas(@RequestParam(required = false) String search) {
+        Specification<Pizza> spec = PizzaSpecificationBuilder.BuildSpecificationFromString(search);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(pizzaService.getAll(spec));
     }
 
     @PostMapping

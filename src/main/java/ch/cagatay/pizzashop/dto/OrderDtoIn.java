@@ -9,7 +9,7 @@ import java.util.List;
 
 @JsonAutoDetect
 @Data
-public class OrderDtoGet {
+public class OrderDtoIn {
     @JsonProperty("id")
     Long id;
 
@@ -26,5 +26,5 @@ public class OrderDtoGet {
     OrderStatus status;
 
     @JsonProperty("pizzas")
-    List<PizzaDto> pizzas;
+    List<Long> pizzaIds;
 }

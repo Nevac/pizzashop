@@ -1,6 +1,5 @@
-package ch.cagatay.pizzashop.util;
+package ch.cagatay.pizzashop;
 
-import ch.cagatay.pizzashop.model.Pizza;
 import org.mockito.Mockito;
 import org.springframework.data.jpa.repository.JpaRepository;
 

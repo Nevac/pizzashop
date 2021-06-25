@@ -1,13 +1,15 @@
 package ch.cagatay.pizzashop.service;
 
-import ch.cagatay.pizzashop.dto.OrderDtoGet;
-import ch.cagatay.pizzashop.dto.OrderDtoPost;
+import ch.cagatay.pizzashop.dto.OrderDtoOut;
+import ch.cagatay.pizzashop.dto.OrderDtoIn;
+import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Order;
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.repository.OrderRepository;
 import ch.cagatay.pizzashop.util.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderService {
+public class OrderService implements PizzaShopService<Order, OrderDtoIn, OrderDtoOut> {
 
     private final String resourceName = "Order";
     private final ModelMapper mapper;
@@ -31,46 +33,56 @@ public class OrderService {
         this.pizzaService = pizzaService;
     }
 
-    public List<OrderDtoGet> getOrders() {
-        return orderRepository.findAll().stream().map(mapper::orderToOrderDtoGet)
+    @Override
+    public List<OrderDtoOut> getAll(Specification<Order> spec) {
+        return orderRepository.findAll().stream().map(mapper::orderToOrderDtoOut)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public OrderDtoGet createOrder(OrderDtoPost orderDtoPost) throws ResourceNotFoundException {
-        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzaIds());
+    @Override
+    public OrderDtoOut create(OrderDtoIn orderDtoIn) throws ResourceNotFoundException {
+        List<Pizza> pizzas = pizzaService.getAllByIds(orderDtoIn.getPizzaIds());
 
         Order order = new Order(
-                orderDtoPost.getAddress(),
-                orderDtoPost.getPhone(),
-                orderDtoPost.getStatus(),
+                orderDtoIn.getAddress(),
+                orderDtoIn.getPhone(),
+                orderDtoIn.getStatus(),
                 pizzas
         );
 
         order = orderRepository.save(order);
-        return mapper.orderToOrderDtoGet(order);
+        return mapper.orderToOrderDtoOut(order);
     }
 
-    public OrderDtoGet getOrder(Long id) throws ResourceNotFoundException {
+    @Override
+    public OrderDtoOut get(Long id) throws ResourceNotFoundException {
         Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(resourceName));
-        return mapper.orderToOrderDtoGet(order);
+        return mapper.orderToOrderDtoOut(order);
     }
 
-    public void updateOrder(Long id, OrderDtoPost orderDtoPost) throws ResourceNotFoundException {
+    @Override
+    public void update(Long id, OrderDtoIn orderDtoIn) throws ResourceNotFoundException {
         Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(resourceName));
-        List<Pizza> pizzas = pizzaService.findAllById(orderDtoPost.getPizzaIds());
+        List<Pizza> pizzas = pizzaService.getAllByIds(orderDtoIn.getPizzaIds());
 
-        order.setAddress(orderDtoPost.getAddress());
-        order.setPhone(orderDtoPost.getPhone());
-        order.setStatus(orderDtoPost.getStatus());
+        order.setAddress(orderDtoIn.getAddress());
+        order.setPhone(orderDtoIn.getPhone());
+        order.setStatus(orderDtoIn.getStatus());
         order.setPizzas(pizzas);
 
         orderRepository.save(order);
     }
 
-    public void deleteOrder(Long id) throws ResourceNotFoundException {
+    @Override
+    public void delete(Long id) throws ResourceNotFoundException {
         Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(resourceName));
         orderRepository.delete(order);
     }
 
-
+    @Override
+    public List<Order> getAllByIds(List<Long> ids) throws ResourceNotFoundException {
+        List<Order> orders = orderRepository.findAllById(ids);
+        if(ids.size() != orders.size()) throw new ResourceNotFoundException(resourceName);
+        return orders;
+    }
 }

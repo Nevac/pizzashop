@@ -5,8 +5,10 @@ import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.repository.PizzaRepository;
 import ch.cagatay.pizzashop.service.PizzaService;
+import ch.cagatay.pizzashop.specifications.PizzaSpecification;
+import ch.cagatay.pizzashop.specifications.SearchCriteria;
+import ch.cagatay.pizzashop.specifications.SearchOperation;
 import ch.cagatay.pizzashop.util.ModelMapper;
-import ch.cagatay.pizzashop.util.TestUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,13 +16,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.jpa.domain.Specification;
+import org.hamcrest.MatcherAssert;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PizzaServiceTest {
@@ -44,15 +49,12 @@ public class PizzaServiceTest {
     private PizzaDto pizza4Dto;
     private PizzaDto pizza5Dto;
 
-    private List<Long> pizzaIdList;
-    private List<Long> pizzaIdListWithNonExistent;
-
     @Before
     public void setUp() {
 
         //Generate Pizza Spies
         pizza1 = generateSpyPizza(1L,
-                new Pizza("Margharitta", "Cheese and Tomato", 12.0f, true));
+                new Pizza("Margharita", "Cheese and Tomato", 12.0f, true));
         pizza1Dto = generateMockedPizzaDto(pizza1);
 
         pizza2 = generateSpyPizza(2L,
@@ -74,16 +76,6 @@ public class PizzaServiceTest {
 
         //Mock common Repository methods
         TestUtil.doMockRepoSetup(pizzaRepository, pizza1, pizza2, pizza3, pizza4);
-
-        //Mock methods unique to this repository
-        Mockito.when(pizzaRepository.findByActive()).thenReturn(Arrays.asList(pizza1, pizza2, pizza3));
-
-        pizzaIdList = Arrays.asList(pizza1.getId(), pizza2.getId(), pizza3.getId());
-        Mockito.when(pizzaRepository.findAllById(pizzaIdList))
-                .thenReturn(Arrays.asList(pizza1, pizza2, pizza3));
-        pizzaIdListWithNonExistent = Arrays.asList(pizza1.getId(), pizza2.getId(), pizza5.getId());
-        Mockito.when(pizzaRepository.findAllById(pizzaIdListWithNonExistent))
-                .thenReturn(Arrays.asList(pizza1, pizza2));
 
         //Mock mapper methods
         generateMockedMapperMethods(modelMapper);
@@ -129,21 +121,42 @@ public class PizzaServiceTest {
     }
 
     @Test
-    public void testGetAllPizzas() {
-        List<PizzaDto> pizzaDtos = pizzaService.getPizzas(true);
+    public void ReturnAllPizzas() {
+        List<PizzaDto> pizzaDtos = pizzaService.getAll(null);
         assertEquals(4, pizzaDtos.size());
     }
 
     @Test
-    public void testGetAllPizzasOnlyActive() {
-        List<PizzaDto> pizzaDtos = pizzaService.getPizzas(false);
+    public void ReturnAllPizzasOnlyThatMatchValidQuery() {
+        Specification<Pizza> spec =
+                new PizzaSpecification(new SearchCriteria("active", SearchOperation.EQUALITY, "true"));
+        Mockito.when(pizzaRepository.findAll(spec)).thenReturn(Arrays.asList(pizza1, pizza2, pizza3));
+
+        //Specification<Pizza> spec = PizzaSpecificationBuilder.BuildSpecificationFromString(search);
+        List<PizzaDto> pizzaDtos = pizzaService.getAll(spec);
         assertEquals(3, pizzaDtos.size());
     }
 
     @Test
-    public void testGetPizza() {
+    public void ReturnEmptyListIfQueryIsFaulty() {
+        Specification<Pizza> specSearchCriteriaHasNull =
+                new PizzaSpecification(new SearchCriteria(null, null, null));
+        Specification<Pizza> specSearchCriteriaHasNonExistentField =
+                new PizzaSpecification(new SearchCriteria("nonExistent", SearchOperation.EQUALITY, "true"));
+        Mockito.when(pizzaRepository.findAll(specSearchCriteriaHasNull))
+                .thenThrow(NullPointerException.class);
+        Mockito.when(pizzaRepository.findAll(specSearchCriteriaHasNonExistentField))
+                .thenThrow(InvalidDataAccessApiUsageException.class);
+
+        assertEquals(pizzaService.getAll(specSearchCriteriaHasNull).size(), 0);
+        assertEquals(pizzaService.getAll(specSearchCriteriaHasNonExistentField).size(), 0);
+
+    }
+
+    @Test
+    public void GetPizza() {
         try {
-            PizzaDto pizzaDto = pizzaService.getPizza(pizza1Dto.getId());
+            PizzaDto pizzaDto = pizzaService.get(pizza1Dto.getId());
             assertEquals(pizza1.getId(), pizzaDto.getId());
         } catch (ResourceNotFoundException e) {
             fail();
@@ -151,14 +164,14 @@ public class PizzaServiceTest {
     }
 
     @Test
-    public void testGetNonExistentPizza() {
+    public void ThrowResourceNotFoundExceptionIfGetPizzaIdDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () -> {
-            pizzaService.getPizza(pizza5Dto.getId());
+            pizzaService.get(pizza5Dto.getId());
         });
     }
 
     @Test
-    public void testUpdatePizza() {
+    public void UpdatePizza() {
         try {
             PizzaDto newPizzaDto = new PizzaDto();
             newPizzaDto.setName("Padrone");
@@ -166,7 +179,7 @@ public class PizzaServiceTest {
             newPizzaDto.setPrice(18.5f);
             newPizzaDto.setActive(true);
 
-            pizzaService.updatePizza(pizza1.getId(), newPizzaDto);
+            pizzaService.update(pizza1.getId(), newPizzaDto);
 
             assertEquals(newPizzaDto.getName(), pizza1.getName());
             assertEquals(newPizzaDto.getDescription(), pizza1.getDescription());
@@ -178,7 +191,7 @@ public class PizzaServiceTest {
     }
 
     @Test
-    public void testUpdateNonExistentPizza() {
+    public void ThrowResourceNotFoundExceptionIfUpdatePizzaIdDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () -> {
             PizzaDto newPizzaDto = new PizzaDto();
             newPizzaDto.setName("Padrone");
@@ -186,15 +199,15 @@ public class PizzaServiceTest {
             newPizzaDto.setPrice(18.5f);
             newPizzaDto.setActive(true);
 
-            pizzaService.updatePizza(pizza5.getId(), newPizzaDto);
+            pizzaService.update(pizza5.getId(), newPizzaDto);
         });
     }
 
     @Test
-    public void deleteActivePizza() {
+    public void SetPizzaInactiveIfDeletedWithActiveTrue() {
         assertTrue(pizza1.isActive());
         try {
-            pizzaService.deletePizza(pizza1.getId());
+            pizzaService.delete(pizza1.getId());
             assertFalse(pizza1.isActive());
         } catch (ResourceNotFoundException e) {
             fail();
@@ -202,10 +215,10 @@ public class PizzaServiceTest {
     }
 
     @Test
-    public void testDeleteInactivePizza() {
+    public void KeepPizzaInactiveIfDeletedWithActiveFalse() {
         assertFalse(pizza4.isActive());
         try {
-            pizzaService.deletePizza(pizza4.getId());
+            pizzaService.delete(pizza4.getId());
             assertFalse(pizza4.isActive());
         } catch (ResourceNotFoundException e) {
             fail();
@@ -213,25 +226,33 @@ public class PizzaServiceTest {
     }
 
     @Test
-    public void testDeleteNonExistingPizzaPizza() {
+    public void ThrowResourceNotFoundExceptionIfDeletePizzaIdDoesNotExist() {
         assertFalse(pizza5.isActive());
         assertThrows(ResourceNotFoundException.class, () -> {
-            pizzaService.deletePizza(pizza5Dto.getId());
+            pizzaService.delete(pizza5Dto.getId());
         });
     }
 
     @Test
-    public void testFindAllByIds() {
+    public void ReturnPizzaListIfAllIdsArePresent() {
+        List<Long> pizzaIdList = Arrays.asList(pizza1.getId(), pizza2.getId(), pizza3.getId());
+        Mockito.when(pizzaRepository.findAllById(pizzaIdList))
+                .thenReturn(Arrays.asList(pizza1, pizza2, pizza3));
         try {
-            List<Pizza> pizzas = pizzaService.findAllById(pizzaIdList);
-            assertEquals(pizzaIdList.size(), pizzas.size());
+            List<Pizza> pizzas = pizzaService.getAllByIds(pizzaIdList);
+            MatcherAssert.assertThat(pizzas, hasItem(pizza1));
+            MatcherAssert.assertThat(pizzas, hasItem(pizza2));
+            MatcherAssert.assertThat(pizzas, hasItem(pizza3));
         } catch (ResourceNotFoundException e) {
             fail();
         }
     }
 
     @Test
-    public void testFindAllByIdsWithNonExistingIds() {
-        assertThrows(ResourceNotFoundException.class, () -> pizzaService.findAllById(pizzaIdListWithNonExistent));
+    public void ThrowResourceNotFoundExceptionIfAtLeastOnePizzaIdInListDoesNotExist() {
+        List<Long> pizzaIdListWithNonExistent = Arrays.asList(pizza1.getId(), pizza2.getId(), pizza5.getId());
+        Mockito.when(pizzaRepository.findAllById(pizzaIdListWithNonExistent))
+                .thenReturn(Arrays.asList(pizza1, pizza2));
+        assertThrows(ResourceNotFoundException.class, () -> pizzaService.getAllByIds(pizzaIdListWithNonExistent));
     }
 }

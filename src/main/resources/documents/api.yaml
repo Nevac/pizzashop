@@ -123,10 +123,11 @@ paths:
       description: Retrieve all pizzas.
       parameters:
         - schema:
-            type: boolean
+            type: string
+            example: 'name:Margharita,''price>13,'
           in: query
-          name: showInactive
-          description: Show inactive pizzas (Default false)
+          name: search
+          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than), ~ (like).  If a query is invalid, an empty list is returned.'
   /order:
     get:
       summary: Your GET endpoint
@@ -141,6 +142,12 @@ paths:
                   - $ref: '#/components/schemas/Order'
       operationId: get-order
       description: Retrieve all orders.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: search
+          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than), ~ (like).  If a query is invalid, an empty list is returned.'
     post:
       summary: ''
       operationId: post-order
