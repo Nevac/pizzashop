@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThrows;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-public class PizzaSpecificationTest {
+public class GeneralSpecificationTest {
 
     @Autowired
     private PizzaRepository pizzaRepository;
@@ -49,7 +49,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfEqual() {
+    public void ReturnsEntitiesIfEqual() {
         Specification<Pizza> spec =
                 new GeneralSpecification<>(new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
 
@@ -73,7 +73,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfEqualNameAndDescription() {
+    public void ReturnsEntitiesIfEqualNameAndDescription() {
         Specification<Pizza> spec1 =
                 new GeneralSpecification<>(
                         new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
@@ -90,7 +90,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnPizzasIfEqualNameOrName() {
+    public void ReturnEntitiesIfEqualNameOrName() {
         Specification<Pizza> spec1 =
                 new GeneralSpecification<>(
                         new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
@@ -107,7 +107,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfPriceGreaterThan13() {
+    public void ReturnsEntitiesIfPriceGreaterThan13() {
         Specification<Pizza> spec =
                 new GeneralSpecification<>(
                         new SearchCriteria("price", SearchOperation.GREATER_THAN, 13.0));
@@ -121,7 +121,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfPriceLessThan13() {
+    public void ReturnsEntitiesIfPriceLessThan13() {
         Specification<Pizza> spec =
                 new GeneralSpecification<>(
                         new SearchCriteria("price", SearchOperation.LESS_THAN, 13.0));
@@ -135,7 +135,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfActiveIsTrue() {
+    public void ReturnsEntitiesIfActiveIsTrue() {
         Specification<Pizza> spec =
                 new GeneralSpecification<>(new SearchCriteria("active", SearchOperation.EQUALITY, true));
 
@@ -148,7 +148,7 @@ public class PizzaSpecificationTest {
     }
 
     @Test
-    public void ReturnsPizzasIfActiveIsFalse() {
+    public void ReturnsEntitiesIfActiveIsFalse() {
         Specification<Pizza> spec =
                 new GeneralSpecification<>(new SearchCriteria("active", SearchOperation.EQUALITY, false));
 
