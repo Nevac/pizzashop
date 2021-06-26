@@ -3,8 +3,7 @@ package ch.cagatay.pizzashop.controller;
 import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.service.PizzaService;
-import ch.cagatay.pizzashop.service.PizzaShopService;
-import ch.cagatay.pizzashop.specifications.PizzaSpecificationBuilder;
+import ch.cagatay.pizzashop.specifications.SpecificationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,7 @@ public class PizzaController {
 
     @GetMapping
     ResponseEntity<List<PizzaDto>> getPizzas(@RequestParam(required = false) String search) {
-        Specification<Pizza> spec = PizzaSpecificationBuilder.BuildSpecificationFromString(search);
+        Specification<Pizza> spec = SpecificationBuilder.buildSpecificationFromString(search);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(pizzaService.getAll(spec));

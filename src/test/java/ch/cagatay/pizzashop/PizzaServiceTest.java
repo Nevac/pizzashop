@@ -5,7 +5,7 @@ import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.repository.PizzaRepository;
 import ch.cagatay.pizzashop.service.PizzaService;
-import ch.cagatay.pizzashop.specifications.PizzaSpecification;
+import ch.cagatay.pizzashop.specifications.GeneralSpecification;
 import ch.cagatay.pizzashop.specifications.SearchCriteria;
 import ch.cagatay.pizzashop.specifications.SearchOperation;
 import ch.cagatay.pizzashop.util.ModelMapper;
@@ -22,9 +22,9 @@ import org.hamcrest.MatcherAssert;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.hasItem;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,60 +53,32 @@ public class PizzaServiceTest {
     public void setUp() {
 
         //Generate Pizza Spies
-        pizza1 = generateSpyPizza(1L,
+        pizza1 = TestUtil.generateSpyPizza(1L,
                 new Pizza("Margharita", "Cheese and Tomato", 12.0f, true));
-        pizza1Dto = generateMockedPizzaDto(pizza1);
+        pizza1Dto = TestUtil.generateMockedPizzaDto(pizza1);
 
-        pizza2 = generateSpyPizza(2L,
+        pizza2 = TestUtil.generateSpyPizza(2L,
                 new Pizza("Proscuitto", "Pork Salami", 15.0f, true));
-        pizza2Dto = generateMockedPizzaDto(pizza2);
+        pizza2Dto = TestUtil.generateMockedPizzaDto(pizza2);
 
-        pizza3 = generateSpyPizza(3L,
+        pizza3 = TestUtil.generateSpyPizza(3L,
                 new Pizza("Funghi", "Mushrooms and Cheese", 15.0f, true));
-        pizza3Dto = generateMockedPizzaDto(pizza3);
+        pizza3Dto = TestUtil.generateMockedPizzaDto(pizza3);
 
-        pizza4 = generateSpyPizza(4L,
+        pizza4 = TestUtil.generateSpyPizza(4L,
                 new Pizza("Hawaii", "Pineapples do not belong onto pizzas", 15.0f, false));
-        pizza4Dto = generateMockedPizzaDto(pizza4);
+        pizza4Dto = TestUtil.generateMockedPizzaDto(pizza4);
 
         //Pizza5 is not persisted in the pizzaRepository mock
-        pizza5 = generateSpyPizza(5L,
+        pizza5 = TestUtil.generateSpyPizza(5L,
                 new Pizza("Imagination", "Non existent Pizza", 15.0f, false));
-        pizza5Dto = generateMockedPizzaDto(pizza5);
+        pizza5Dto = TestUtil.generateMockedPizzaDto(pizza5);
 
         //Mock common Repository methods
         TestUtil.doMockRepoSetup(pizzaRepository, pizza1, pizza2, pizza3, pizza4);
 
         //Mock mapper methods
         generateMockedMapperMethods(modelMapper);
-    }
-
-    /**
-     * Generates a spy object which spies on the given pizza and mocks the getID method.
-     * This is necessary, since certain checks perform id comparisons and the id cannot be set from outside.
-     * @param id the id the spy should return upon calling getId()
-     * @param pizza the pizza which should be mocked
-     * @return A spy pizza object which returns the given id upon calling getID()
-     */
-    private Pizza generateSpyPizza(long id, Pizza pizza){
-        Pizza p = Mockito.spy(pizza);
-        Mockito.when(p.getId()).thenReturn(id);
-        return p;
-    }
-
-    /**
-     * Generates a spy object which spies on the given pizzaDto
-     * @param pizza the pizza which should be mocked
-     * @return A spy pizzaDto object
-     */
-    private PizzaDto generateMockedPizzaDto(Pizza pizza){
-        PizzaDto pizzaDto = new PizzaDto();
-        pizzaDto.setId(pizza.getId());
-        pizzaDto.setName(pizza.getName());
-        pizzaDto.setDescription(pizza.getDescription());
-        pizzaDto.setPrice(pizza.getPrice());
-        pizzaDto.setActive(pizza.isActive());
-        return Mockito.spy(pizzaDto);
     }
 
     /**
@@ -124,25 +96,30 @@ public class PizzaServiceTest {
     public void ReturnAllPizzas() {
         List<PizzaDto> pizzaDtos = pizzaService.getAll(null);
         assertEquals(4, pizzaDtos.size());
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza1Dto));
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza2Dto));
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza3Dto));
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza4Dto));
     }
 
     @Test
     public void ReturnAllPizzasOnlyThatMatchValidQuery() {
         Specification<Pizza> spec =
-                new PizzaSpecification(new SearchCriteria("active", SearchOperation.EQUALITY, "true"));
+                new GeneralSpecification<>(new SearchCriteria("active", SearchOperation.EQUALITY, "true"));
         Mockito.when(pizzaRepository.findAll(spec)).thenReturn(Arrays.asList(pizza1, pizza2, pizza3));
-
-        //Specification<Pizza> spec = PizzaSpecificationBuilder.BuildSpecificationFromString(search);
         List<PizzaDto> pizzaDtos = pizzaService.getAll(spec);
         assertEquals(3, pizzaDtos.size());
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza1Dto));
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza2Dto));
+        MatcherAssert.assertThat(pizzaDtos, hasItem(pizza3Dto));
     }
 
     @Test
     public void ReturnEmptyListIfQueryIsFaulty() {
         Specification<Pizza> specSearchCriteriaHasNull =
-                new PizzaSpecification(new SearchCriteria(null, null, null));
+                new GeneralSpecification<>(new SearchCriteria(null, null, null));
         Specification<Pizza> specSearchCriteriaHasNonExistentField =
-                new PizzaSpecification(new SearchCriteria("nonExistent", SearchOperation.EQUALITY, "true"));
+                new GeneralSpecification<>(new SearchCriteria("nonExistent", SearchOperation.EQUALITY, "true"));
         Mockito.when(pizzaRepository.findAll(specSearchCriteriaHasNull))
                 .thenThrow(NullPointerException.class);
         Mockito.when(pizzaRepository.findAll(specSearchCriteriaHasNonExistentField))

@@ -2,7 +2,6 @@ package ch.cagatay.pizzashop.service;
 
 import ch.cagatay.pizzashop.dto.OrderDtoOut;
 import ch.cagatay.pizzashop.dto.OrderDtoIn;
-import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Order;
 import ch.cagatay.pizzashop.model.Pizza;
@@ -35,8 +34,15 @@ public class OrderService implements PizzaShopService<Order, OrderDtoIn, OrderDt
 
     @Override
     public List<OrderDtoOut> getAll(Specification<Order> spec) {
-        return orderRepository.findAll().stream().map(mapper::orderToOrderDtoOut)
-                .collect(Collectors.toCollection(ArrayList::new));
+        if(spec != null) {
+            try {
+                return orderRepository.findAll(spec).stream().map(mapper::orderToOrderDtoOut)
+                        .collect(Collectors.toList());
+            } catch (Exception e) {
+                return new ArrayList<>();
+            }
+        }
+        return orderRepository.findAll().stream().map(mapper::orderToOrderDtoOut).collect(Collectors.toList());
     }
 
     @Override

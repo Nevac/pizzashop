@@ -19,9 +19,6 @@ public class OrderDtoIn {
     @JsonProperty("phone")
     String phone;
 
-    @JsonProperty("price")
-    float price;
-
     @JsonProperty("status")
     OrderStatus status;
 

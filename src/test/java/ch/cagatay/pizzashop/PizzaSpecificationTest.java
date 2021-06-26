@@ -2,7 +2,7 @@ package ch.cagatay.pizzashop;
 
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.repository.PizzaRepository;
-import ch.cagatay.pizzashop.specifications.PizzaSpecification;
+import ch.cagatay.pizzashop.specifications.GeneralSpecification;
 import ch.cagatay.pizzashop.specifications.SearchCriteria;
 import ch.cagatay.pizzashop.specifications.SearchOperation;
 import org.junit.Before;
@@ -51,7 +51,7 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfEqual() {
         Specification<Pizza> spec =
-                new PizzaSpecification(new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
+                new GeneralSpecification<>(new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
 
         List<Pizza> results = pizzaRepository.findAll(spec);
 
@@ -61,7 +61,7 @@ public class PizzaSpecificationTest {
         MatcherAssert.assertThat(results, not(hasItem(pizza4)));
 
         spec =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("description", SearchOperation.EQUALITY, "Cheese and Tomato"));
 
         results = pizzaRepository.findAll(spec);
@@ -75,10 +75,10 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfEqualNameAndDescription() {
         Specification<Pizza> spec1 =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
         Specification<Pizza> spec2 =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("description", SearchOperation.EQUALITY, "Cheese and Tomato"));
 
         List<Pizza> results = pizzaRepository.findAll(Specification.where(spec1).and(spec2));
@@ -92,10 +92,10 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnPizzasIfEqualNameOrName() {
         Specification<Pizza> spec1 =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("name", SearchOperation.EQUALITY, "Margharita"));
         Specification<Pizza> spec2 =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("name", SearchOperation.EQUALITY, "Proscuitto"));
 
         List<Pizza> results = pizzaRepository.findAll(Specification.where(spec1).or(spec2));
@@ -109,7 +109,7 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfPriceGreaterThan13() {
         Specification<Pizza> spec =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("price", SearchOperation.GREATER_THAN, 13.0));
 
         List<Pizza> results = pizzaRepository.findAll(spec);
@@ -123,7 +123,7 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfPriceLessThan13() {
         Specification<Pizza> spec =
-                new PizzaSpecification(
+                new GeneralSpecification<>(
                         new SearchCriteria("price", SearchOperation.LESS_THAN, 13.0));
 
         List<Pizza> results = pizzaRepository.findAll(spec);
@@ -137,7 +137,7 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfActiveIsTrue() {
         Specification<Pizza> spec =
-                new PizzaSpecification(new SearchCriteria("active", SearchOperation.EQUALITY, true));
+                new GeneralSpecification<>(new SearchCriteria("active", SearchOperation.EQUALITY, true));
 
         List<Pizza> results = pizzaRepository.findAll(spec);
 
@@ -150,7 +150,7 @@ public class PizzaSpecificationTest {
     @Test
     public void ReturnsPizzasIfActiveIsFalse() {
         Specification<Pizza> spec =
-                new PizzaSpecification(new SearchCriteria("active", SearchOperation.EQUALITY, false));
+                new GeneralSpecification<>(new SearchCriteria("active", SearchOperation.EQUALITY, false));
 
         List<Pizza> results = pizzaRepository.findAll(spec);
 
@@ -163,22 +163,22 @@ public class PizzaSpecificationTest {
     @Test
     public void ThrowExceptionIfSpecificationIsWrong() {
         assertThrows(NullPointerException.class, () -> {
-            Specification spec = new PizzaSpecification(null);
+            Specification<Pizza> spec = new GeneralSpecification<>(null);
             pizzaRepository.findAll(spec);
         });
 
         assertThrows(NullPointerException.class, () -> {
-            Specification spec = new PizzaSpecification(new SearchCriteria(null, null, null));
+            Specification<Pizza> spec = new GeneralSpecification<>(new SearchCriteria(null, null, null));
             pizzaRepository.findAll(spec);
         });
 
         assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-            Specification spec = new PizzaSpecification(new SearchCriteria("", SearchOperation.EQUALITY, ""));
+            Specification<Pizza> spec = new GeneralSpecification<>(new SearchCriteria("", SearchOperation.EQUALITY, ""));
             pizzaRepository.findAll(spec);
         });
 
         assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-            Specification spec = new PizzaSpecification(
+            Specification<Pizza> spec = new GeneralSpecification<>(
                     new SearchCriteria("notInPizza", SearchOperation.EQUALITY, ""));
             pizzaRepository.findAll(spec);
         });

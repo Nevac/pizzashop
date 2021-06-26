@@ -33,7 +33,7 @@ public class PizzaService implements PizzaShopService<Pizza, PizzaDto, PizzaDto>
             try {
                 return pizzaRepository.findAll(spec).stream().map(mapper::pizzaToPizzaDto).collect(Collectors.toList());
             } catch (Exception e) {
-                return new ArrayList<PizzaDto>();
+                return new ArrayList<>();
             }
         }
         return pizzaRepository.findAll().stream().map(mapper::pizzaToPizzaDto).collect(Collectors.toList());

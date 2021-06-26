@@ -1,18 +1,16 @@
 package ch.cagatay.pizzashop.specifications;
 
-import ch.cagatay.pizzashop.model.Pizza;
 import org.springframework.data.jpa.domain.Specification;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-public class PizzaSpecification implements Specification<Pizza> {
+public class GeneralSpecification<T> implements Specification<T> {
 
     private SearchCriteria criteria;
 
-    public PizzaSpecification(final SearchCriteria criteria) {
+    public GeneralSpecification(final SearchCriteria criteria) {
         super();
         this.criteria = criteria;
     }
@@ -22,7 +20,7 @@ public class PizzaSpecification implements Specification<Pizza> {
     }
 
     @Override
-    public Predicate toPredicate(Root<Pizza> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         switch (criteria.getOperation()) {
             case EQUALITY:
                 return criteriaBuilder.equal(root.get(criteria.getKey()), criteria.getValue());
