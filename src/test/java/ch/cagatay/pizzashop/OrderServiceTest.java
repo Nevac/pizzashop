@@ -167,7 +167,7 @@ public class OrderServiceTest {
     @Test
     public void GetOrder() {
         try {
-            OrderDtoOut orderDtoOut = orderService.get(order1DtoIn.getId());
+            OrderDtoOut orderDtoOut = orderService.get(order1.getId());
             assertEquals(order1.getId(), orderDtoOut.getId());
         } catch (ResourceNotFoundException e) {
             fail();
@@ -177,7 +177,7 @@ public class OrderServiceTest {
     @Test
     public void ThrowResourceNotFoundExceptionIfGetOrderIdDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () -> {
-            orderService.get(order4DtoIn.getId());
+            orderService.get(order4.getId());
         });
     }
 
@@ -220,7 +220,7 @@ public class OrderServiceTest {
     @Test
     public void ThrowResourceNotFoundExceptionIfDeletePizzaIdDoesNotExist() {
         assertThrows(ResourceNotFoundException.class, () -> {
-            orderService.delete(order4DtoIn.getId());
+            orderService.delete(order4.getId());
         });
     }
 }
