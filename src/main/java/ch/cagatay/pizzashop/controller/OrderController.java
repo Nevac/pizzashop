@@ -2,12 +2,9 @@ package ch.cagatay.pizzashop.controller;
 
 import ch.cagatay.pizzashop.dto.OrderDtoOut;
 import ch.cagatay.pizzashop.dto.OrderDtoIn;
-import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Order;
-import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.service.OrderService;
-import ch.cagatay.pizzashop.service.PizzaService;
 import ch.cagatay.pizzashop.service.PizzaShopService;
 import ch.cagatay.pizzashop.specifications.SpecificationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
