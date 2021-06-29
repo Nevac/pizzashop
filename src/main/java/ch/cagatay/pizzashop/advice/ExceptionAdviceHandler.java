@@ -22,10 +22,11 @@ public class ExceptionAdviceHandler {
         return new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({JsonProcessingException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({JsonProcessingException.class, HttpMessageNotReadableException.class,
+            MethodArgumentNotValidException.class})
     public ResponseEntity<String> handleUnprocessableEntityException(Exception e) {
         logger.error(e.getMessage());
         return new ResponseEntity<String>(
-                e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+                "Unprocessable Body Entity", HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }
