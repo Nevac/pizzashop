@@ -24,7 +24,6 @@ public class OrderDtoIn {
     String phone;
 
     @NotNull
-    @NotBlank
     @JsonProperty("status")
     OrderStatus status;
 

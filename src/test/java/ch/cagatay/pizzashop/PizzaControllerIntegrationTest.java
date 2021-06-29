@@ -6,8 +6,6 @@ import ch.cagatay.pizzashop.repository.PizzaRepository;
 import io.restassured.RestAssured;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.response.Response;
-import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static io.restassured.RestAssured.*;
 import static org.junit.Assert.assertEquals;
@@ -37,6 +36,8 @@ public class PizzaControllerIntegrationTest {
     @Autowired
     private PizzaRepository pizzaRepository;
 
+    private Pizza pizza1;
+
     @Before
     void setUp() {
         RestAssured.port = DEFAULT_PORT;
@@ -44,16 +45,17 @@ public class PizzaControllerIntegrationTest {
     }
 
     private void insertPizzas() {
-        Pizza pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
+        pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
         Pizza pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
         Pizza pizza3 = new Pizza("Funghi", "Mushrooms and Cheese", 15.0f, true);
         Pizza pizza4 = new Pizza("Hawaii", "Pineapples do not belong onto pizzas", 15.0f, false);
-        pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2, pizza3, pizza4));
+        List<Pizza> pizzas = pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2, pizza3, pizza4));
+        pizza1 = pizzas.get(0);
     }
 
     private void insertOnePizza() {
-        Pizza pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
-        pizzaRepository.saveAndFlush(pizza1);
+        pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
+        pizza1 = pizzaRepository.saveAndFlush(pizza1);
     }
 
     @Test
@@ -67,9 +69,18 @@ public class PizzaControllerIntegrationTest {
     @Test
     void GetPizza() {
         insertOnePizza();
-        Response response = get(String.format("%s/%d", routerPath, 1)).then().extract().response();
+        Response response = get(String.format("%s/%d", routerPath, pizza1.getId())).then().extract().response();
 
-        assertEquals(1L, response.jsonPath().getLong("id"));
+        assertEquals(pizza1.getId().longValue(), response.jsonPath().getLong("id"));
+    }
+
+    @Test
+    void ThrowExceptionIfGetOnNonExistentOrder() {
+        insertOnePizza();
+        Response response = get(String.format("%s/%d", routerPath, 10L)).then().extract().response();
+
+        assertEquals(404, response.statusCode());
+        assertEquals("Pizza Not Found", response.body().asString());
     }
 
     @Test
@@ -159,7 +170,7 @@ public class PizzaControllerIntegrationTest {
         pizzaDto.setPrice(17F);
         pizzaDto.setActive(true);
 
-        Response response = putPizza(pizzaDto, 1L);
+        Response response = putPizza(pizzaDto, pizza1.getId());
 
         assertEquals(204, response.statusCode());
     }
@@ -173,7 +184,7 @@ public class PizzaControllerIntegrationTest {
         pizzaDto.setPrice(17F);
         pizzaDto.setActive(true);
 
-        Response response = putPizza(pizzaDto, 2L);
+        Response response = putPizza(pizzaDto, 10L);
 
         assertEquals(404, response.statusCode());
         assertEquals("Pizza Not Found", response.body().asString());
@@ -188,45 +199,45 @@ public class PizzaControllerIntegrationTest {
         pizzaDto.setPrice(17F);
         pizzaDto.setActive(true);
 
-        Response response = putPizza(pizzaDto, 1L);
+        Response response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setName("");
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setName("Padrone");
         pizzaDto.setDescription(null);
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setDescription("");
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setDescription("Beef");
         pizzaDto.setPrice(null);
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setPrice(-1F);
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setPrice(17F);
         pizzaDto.setActive(null);
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         pizzaDto.setActive(true);
-        response = putPizza(pizzaDto, 1L);
+        response = putPizza(pizzaDto, pizza1.getId());
         assertEquals(204, response.statusCode());
     }
 
@@ -243,12 +254,12 @@ public class PizzaControllerIntegrationTest {
     @Test
     void DeletePizza() {
         insertOnePizza();
-        Response response = delete(String.format("%s/%d", routerPath, 1))
+        Response response = delete(String.format("%s/%d", routerPath, pizza1.getId()))
                 .then().extract().response();
 
         assertEquals(204, response.statusCode());
 
-        response = get(String.format("%s/%d", routerPath, 1))
+        response = get(String.format("%s/%d", routerPath, pizza1.getId()))
                 .then().extract().response();
 
         assertEquals(200, response.statusCode());
@@ -258,7 +269,7 @@ public class PizzaControllerIntegrationTest {
     @Test
     void ThrowExceptionIfDeleteOnNonExistentPizza() {
         insertOnePizza();
-        Response response = delete(String.format("%s/%d", routerPath, 300))
+        Response response = delete(String.format("%s/%d", routerPath, 10L))
                 .then().extract().response();
 
         assertEquals(404, response.statusCode());

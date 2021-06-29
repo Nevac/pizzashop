@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.context.WebApplicationContext;
@@ -43,6 +44,13 @@ public class OrderControllerIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    private Pizza pizza1;
+    private Pizza pizza2;
+    private Pizza pizza3;
+    private Pizza pizza4;
+
+    private Order order1;
+
     @Before
     void setUp() {
         RestAssured.port = DEFAULT_PORT;
@@ -50,30 +58,50 @@ public class OrderControllerIntegrationTest {
     }
 
     private void insertOrders() {
-        Pizza pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
-        Pizza pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
-        Pizza pizza3 = new Pizza("Funghi", "Mushrooms and Cheese", 15.0f, true);
-        Pizza pizza4 =
+        pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
+        pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
+        pizza3 = new Pizza("Funghi", "Mushrooms and Cheese", 15.0f, true);
+        pizza4 =
                 new Pizza("Hawaii", "Pineapples do not belong onto pizzas", 15.0f, false);
-        pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2, pizza3, pizza4));
+        List<Pizza> pizzas = pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2, pizza3, pizza4));
+        pizza1 = pizzas.get(0);
+        pizza2 = pizzas.get(1);
+        pizza3 = pizzas.get(2);
+        pizza4 = pizzas.get(3);
 
-        Order order1 = new Order("Address 1", "0791111111", OrderStatus.PENDING,
+        order1 = new Order("Address 1", "0791111111", OrderStatus.PENDING,
                 Arrays.asList(pizza1, pizza2));
         Order order2 = new Order("Address 2", "0792222222", OrderStatus.IN_PROCESS,
                 Arrays.asList(pizza2, pizza3));
         Order order3 = new Order("Address 3", "0793333333", OrderStatus.IN_DELIVERY,
-                        Arrays.asList(pizza1, pizza3, pizza4));
-        orderRepository.saveAllAndFlush(Arrays.asList(order1, order2, order3));
+                Arrays.asList(pizza2, pizza3, pizza4));
+        List<Order> orders = orderRepository.saveAllAndFlush(Arrays.asList(order1, order2, order3));
+        order1 = orders.get(0);
     }
 
     private void insertOneOrder() {
-        Pizza pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
-        Pizza pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
-        pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2));
+        pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
+        pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
+        List<Pizza> pizzas = pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2));
+        pizza1 = pizzas.get(0);
+        pizza2 = pizzas.get(1);
 
-        Order order1 = new Order("Adress 1", "0791111111", OrderStatus.PENDING,
-                Collections.singletonList(pizza1));
-        orderRepository.saveAndFlush(order1);
+        order1 = new Order("Adress 1", "0791111111", OrderStatus.PENDING,
+                Arrays.asList(pizza1, pizza2));
+        order1 = orderRepository.saveAndFlush(order1);
+    }
+
+    private void insertPizzas() {
+        pizza1 = new Pizza("Margharita", "Cheese and Tomato", 12.0f, true);
+        pizza2 = new Pizza("Proscuitto", "Pork Salami", 15.0f, true);
+        pizza3 = new Pizza("Funghi", "Mushrooms and Cheese", 15.0f, true);
+        pizza4 =
+                new Pizza("Hawaii", "Pineapples do not belong onto pizzas", 15.0f, false);
+        List<Pizza> pizzas = pizzaRepository.saveAllAndFlush(Arrays.asList(pizza1, pizza2, pizza3, pizza4));
+        pizza1 = pizzas.get(0);
+        pizza2 = pizzas.get(1);
+        pizza3 = pizzas.get(2);
+        pizza4 = pizzas.get(3);
     }
 
     @Test
@@ -81,46 +109,56 @@ public class OrderControllerIntegrationTest {
         insertOrders();
         Response response = get(routerPath).then().extract().response();
 
-        assertEquals(4, response.jsonPath().getList("").size());
+        assertEquals(3, response.jsonPath().getList("").size());
     }
 
     @Test
     void GetOrder() {
         insertOneOrder();
-        Response response = get(String.format("%s/%d", routerPath, 1)).then().extract().response();
+        Response response = get(String.format("%s/%d", routerPath, 3)).then().extract().response();
 
-        assertEquals(1L, response.jsonPath().getLong("id"));
+        assertEquals(order1.getId().longValue(), response.jsonPath().getLong("id"));
+    }
+
+    @Test
+    void ThrowExceptionIfGetOnNonExistentOrder() {
+        insertOneOrder();
+        Response response = get(String.format("%s/%d", routerPath, 10L)).then().extract().response();
+
+        assertEquals(404, response.statusCode());
+        assertEquals("Order Not Found", response.body().asString());
     }
 
     @Test
     void CreateOrder() {
+        insertPizzas();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
         orderDtoIn.setAddress("Address new");
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L, 4L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId(), pizza4.getId()));
 
         Response response = postOrder(orderDtoIn);
 
         assertEquals(201, response.statusCode());
         assertEquals("Address new", response.jsonPath().getString("address"));
         assertEquals("0790000000", response.jsonPath().getString("phone"));
-        assertEquals(OrderStatus.PENDING.toString(), response.jsonPath().getString("status"));
-        List<Pizza> pizzas = response.jsonPath().getList("pizzas");
-        assertEquals(Matchers.hasSize(3), pizzas);
-        assertEquals(1L, pizzas.get(0).getId().longValue());
-        assertEquals(2L, pizzas.get(1).getId().longValue());
-        assertEquals(4L, pizzas.get(2).getId().longValue());
+        assertEquals("pending", response.jsonPath().getString("status"));
+        List<PizzaDto> pizzas = response.jsonPath().getList("pizzas", PizzaDto.class);
+        assertEquals(3, pizzas.size());
+        assertEquals(pizza1.getId(), pizzas.get(0).getId());
+        assertEquals(pizza2.getId(), pizzas.get(1).getId());
+        assertEquals(pizza4.getId(), pizzas.get(2).getId());
     }
 
     @Test
     void ThrowExceptionIfCreateOrderPizzaDoesNotExist() {
-        insertOneOrder();
+        insertPizzas();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
-        orderDtoIn.setAddress(null);
+        orderDtoIn.setAddress("Addess new");
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 5L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), 5L));
 
         Response response = postOrder(orderDtoIn);
 
@@ -130,11 +168,12 @@ public class OrderControllerIntegrationTest {
 
     @Test
     void ThrowExceptionIfCreateOrderWithInvalidBody() {
+        insertPizzas();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
         orderDtoIn.setAddress(null);
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L, 4L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId(), pizza4.getId()));
 
         Response response = postOrder(orderDtoIn);
         assertEquals(422, response.statusCode());
@@ -173,12 +212,12 @@ public class OrderControllerIntegrationTest {
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L, 6L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(),pizza2.getId(), 6L));
         response = postOrder(orderDtoIn);
         assertEquals(404, response.statusCode());
         assertEquals("Pizza Not Found", response.body().asString());
 
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L, 4L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId(), pizza4.getId()));
         response = postOrder(orderDtoIn);
         assertEquals(201, response.statusCode());
     }
@@ -197,12 +236,12 @@ public class OrderControllerIntegrationTest {
     void UpdateOrder() {
         insertOneOrder();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
-        orderDtoIn.setAddress(null);
+        orderDtoIn.setAddress("Address new");
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId()));
 
-        Response response = putOrder(orderDtoIn, 1L);
+        Response response = putOrder(orderDtoIn, order1.getId());
 
         assertEquals(204, response.statusCode());
     }
@@ -211,12 +250,12 @@ public class OrderControllerIntegrationTest {
     void ThrowExceptionIfUpdateOnNonExistentOrder() {
         insertOneOrder();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
-        orderDtoIn.setAddress(null);
+        orderDtoIn.setAddress("Address new");
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId()));
 
-        Response response = putOrder(orderDtoIn, 2L);
+        Response response = putOrder(orderDtoIn, 10L);
 
         assertEquals(404, response.statusCode());
         assertEquals("Order Not Found", response.body().asString());
@@ -226,12 +265,12 @@ public class OrderControllerIntegrationTest {
     void ThrowExceptionIfUpdateOrderPizzaDoesNotExist() {
         insertOneOrder();
         OrderDtoIn orderDtoIn = new OrderDtoIn();
-        orderDtoIn.setAddress(null);
+        orderDtoIn.setAddress("Address new");
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 5L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), 5L));
 
-        Response response = putOrder(orderDtoIn, 1L);
+        Response response = putOrder(orderDtoIn, order1.getId());
 
         assertEquals(404, response.statusCode());
         assertEquals("Pizza Not Found", response.body().asString());
@@ -244,47 +283,47 @@ public class OrderControllerIntegrationTest {
         orderDtoIn.setAddress(null);
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(OrderStatus.PENDING);
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L));
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId()));
 
-        Response response = putOrder(orderDtoIn, 1L);
+        Response response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setAddress("");
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setAddress("Address new");
         orderDtoIn.setPhone(null);
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setPhone("");
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setPhone("0790000000");
         orderDtoIn.setStatus(null);
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setStatus(OrderStatus.PENDING);
         orderDtoIn.setPizzaIds(null);
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
         orderDtoIn.setPizzaIds(Collections.emptyList());
-        response = putOrder(orderDtoIn, 1L);
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(422, response.statusCode());
         assertEquals("Unprocessable Body Entity", response.body().asString());
 
-        orderDtoIn.setPizzaIds(Arrays.asList(1L, 2L, 4L));
-        response = putOrder(orderDtoIn, 1L);
+        orderDtoIn.setPizzaIds(Arrays.asList(pizza1.getId(), pizza2.getId()));
+        response = putOrder(orderDtoIn, order1.getId());
         assertEquals(204, response.statusCode());
     }
 
@@ -301,7 +340,7 @@ public class OrderControllerIntegrationTest {
     @Test
     void DeleteOrder() {
         insertOneOrder();
-        Response response = delete(String.format("%s/%d", routerPath, 1))
+        Response response = delete(String.format("%s/%d", routerPath, order1.getId()))
                 .then().extract().response();
 
         assertEquals(204, response.statusCode());
@@ -310,7 +349,7 @@ public class OrderControllerIntegrationTest {
     @Test
     void ThrowExceptionIfDeleteOnNonExistentOrder() {
         insertOneOrder();
-        Response response = delete(String.format("%s/%d", routerPath, 300))
+        Response response = delete(String.format("%s/%d", routerPath, 10L))
                 .then().extract().response();
 
         assertEquals(404, response.statusCode());

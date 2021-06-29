@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Controller
@@ -37,7 +38,7 @@ public class OrderController {
     }
 
     @PostMapping
-    ResponseEntity<OrderDtoOut> createOrder(@RequestBody OrderDtoIn newOrderDto, @PathVariable Long id)
+    ResponseEntity<OrderDtoOut> createOrder(@Valid @RequestBody OrderDtoIn newOrderDto)
             throws ResourceNotFoundException {
         OrderDtoOut orderDtoOut = orderService.create(newOrderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(orderDtoOut);
@@ -50,7 +51,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<String> updateOrder(@RequestBody OrderDtoIn updatedOrderDto, @PathVariable Long id)
+    ResponseEntity<String> updateOrder(@Valid @RequestBody OrderDtoIn updatedOrderDto, @PathVariable Long id)
             throws ResourceNotFoundException {
         orderService.update(id, updatedOrderDto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(String.format("Updated %s", resourceName));
