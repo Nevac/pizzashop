@@ -15,15 +15,15 @@ public class Pizza {
 
     private String name;
     private String description;
-    private float price;
-    private boolean active;
+    private Float price;
+    private Boolean active;
 
     @ManyToMany(mappedBy = "pizzas")
     private List<Order> orders;
 
     protected Pizza() {}
 
-    public Pizza(String name, String description, float price, boolean active) {
+    public Pizza(String name, String description, Float price, Boolean active) {
         this.name = name;
         this.description = description;
         this.price = price;

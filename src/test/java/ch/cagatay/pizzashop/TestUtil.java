@@ -5,7 +5,6 @@ import ch.cagatay.pizzashop.dto.OrderDtoOut;
 import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.model.Order;
 import ch.cagatay.pizzashop.model.Pizza;
-import ch.cagatay.pizzashop.util.ModelMapper;
 import org.mockito.Mockito;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -56,7 +55,7 @@ public class TestUtil {
         pizzaDto.setName(pizza.getName());
         pizzaDto.setDescription(pizza.getDescription());
         pizzaDto.setPrice(pizza.getPrice());
-        pizzaDto.setActive(pizza.isActive());
+        pizzaDto.setActive(pizza.getActive());
         return Mockito.spy(pizzaDto);
     }
 
@@ -80,7 +79,6 @@ public class TestUtil {
      */
     public static OrderDtoIn generateMockedOrderDtoIn(Order order){
         OrderDtoIn orderDto = new OrderDtoIn();
-        orderDto.setId(order.getId());
         orderDto.setAddress(order.getAddress());
         orderDto.setPhone(order.getPhone());
         orderDto.setStatus(order.getStatus());

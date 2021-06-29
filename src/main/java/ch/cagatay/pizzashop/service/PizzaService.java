@@ -59,7 +59,7 @@ public class PizzaService implements PizzaShopService<Pizza, PizzaDto, PizzaDto>
         pizza.setName(pizzaDto.getName());
         pizza.setDescription(pizzaDto.getDescription());
         pizza.setPrice(pizzaDto.getPrice());
-        pizza.setActive(pizzaDto.isActive());
+        pizza.setActive(pizzaDto.getActive());
         pizzaRepository.save(pizza);
     }
 

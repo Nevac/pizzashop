@@ -161,7 +161,7 @@ public class PizzaServiceTest {
             assertEquals(newPizzaDto.getName(), pizza1.getName());
             assertEquals(newPizzaDto.getDescription(), pizza1.getDescription());
             assertEquals(newPizzaDto.getPrice(), pizza1.getPrice(), 0.001);
-            assertEquals(newPizzaDto.isActive(), pizza1.isActive());
+            assertEquals(newPizzaDto.getActive(), pizza1.getActive());
         } catch (ResourceNotFoundException e) {
             fail();
         }
@@ -182,10 +182,10 @@ public class PizzaServiceTest {
 
     @Test
     public void SetPizzaInactiveIfDeletedWithActiveTrue() {
-        assertTrue(pizza1.isActive());
+        assertTrue(pizza1.getActive());
         try {
             pizzaService.delete(pizza1.getId());
-            assertFalse(pizza1.isActive());
+            assertFalse(pizza1.getActive());
         } catch (ResourceNotFoundException e) {
             fail();
         }
@@ -193,10 +193,10 @@ public class PizzaServiceTest {
 
     @Test
     public void KeepPizzaInactiveIfDeletedWithActiveFalse() {
-        assertFalse(pizza4.isActive());
+        assertFalse(pizza4.getActive());
         try {
             pizzaService.delete(pizza4.getId());
-            assertFalse(pizza4.isActive());
+            assertFalse(pizza4.getActive());
         } catch (ResourceNotFoundException e) {
             fail();
         }
@@ -204,7 +204,7 @@ public class PizzaServiceTest {
 
     @Test
     public void ThrowResourceNotFoundExceptionIfDeletePizzaIdDoesNotExist() {
-        assertFalse(pizza5.isActive());
+        assertFalse(pizza5.getActive());
         assertThrows(ResourceNotFoundException.class, () -> {
             pizzaService.delete(pizza5Dto.getId());
         });
