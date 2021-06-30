@@ -9,5 +9,4 @@ import java.util.List;
 
 @Repository
 public interface PizzaRepository extends JpaRepository<Pizza, Long>, JpaSpecificationExecutor<Pizza> {
-    List<Pizza> findByActive(boolean active);
 }

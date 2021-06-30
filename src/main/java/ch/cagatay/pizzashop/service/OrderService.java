@@ -2,10 +2,12 @@ package ch.cagatay.pizzashop.service;
 
 import ch.cagatay.pizzashop.dto.OrderDtoOut;
 import ch.cagatay.pizzashop.dto.OrderDtoIn;
+import ch.cagatay.pizzashop.dto.PizzaDto;
 import ch.cagatay.pizzashop.exception.ResourceNotFoundException;
 import ch.cagatay.pizzashop.model.Order;
 import ch.cagatay.pizzashop.model.Pizza;
 import ch.cagatay.pizzashop.repository.OrderRepository;
+import ch.cagatay.pizzashop.repository.PizzaShopRepository;
 import ch.cagatay.pizzashop.util.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,7 +23,7 @@ public class OrderService implements PizzaShopService<Order, OrderDtoIn, OrderDt
     private final String resourceName = "Order";
     private final ModelMapper mapper;
     private final OrderRepository orderRepository;
-    private final PizzaService pizzaService;
+    private final PizzaShopService<Pizza, PizzaDto, PizzaDto> pizzaService;
 
     @Autowired
     public OrderService(ModelMapper mapper,

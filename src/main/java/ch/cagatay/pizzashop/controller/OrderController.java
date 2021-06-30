@@ -30,7 +30,7 @@ public class OrderController {
     }
 
     @GetMapping
-    ResponseEntity<List<OrderDtoOut>> getOrder(@RequestParam(required = false) String search) {
+    ResponseEntity<List<OrderDtoOut>> getOrders(@RequestParam(required = false) String search) {
         Specification<Order> spec = SpecificationBuilder.buildSpecificationFromString(search);
         return ResponseEntity
                 .status(HttpStatus.OK)

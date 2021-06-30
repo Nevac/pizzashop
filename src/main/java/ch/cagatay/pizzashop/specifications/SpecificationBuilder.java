@@ -74,7 +74,7 @@ public class SpecificationBuilder<T> {
         String operationSetExper = Joiner.on("|")
                 .join(SearchOperation.SIMPLE_OPERATION_SET);
         Pattern pattern = Pattern
-                .compile("(\\p{Punct}?)(\\w+?)(" + operationSetExper + ")(\\p{Punct}?)(\\w+?)(\\p{Punct}?),");
+                .compile("(\\p{Punct}?)(\\w+?)(" + operationSetExper + ")(\\p{Punct}?)(\\w+( +\\w+)*$?)(\\p{Punct}?),");
         Matcher matcher = pattern.matcher(search + ",");
         while (matcher.find()) {
             builder.with(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(5), matcher.group(4),
