@@ -69,7 +69,7 @@ Following dependencies are used by the application
 
 | Plugin  | Description
 | ------ | ------ |
-| [Spring Boot Startet Data JPA](https://spring.io/projects/spring-data-jpa) | Spring JPA Repositories for abstract persistence interface|
+| Spring Boot Starter Data JPA | Spring JPA Repositories for abstract persistence interface|
 | Spring Boot Starter Web | Spring Web extension |
 | Spring Boot Starter Tomcat | Spring tomcat extension  |
 | Spring Boot Starter Test | Adds all needed test depndencies (JUnit, Mockito, Hamcrest) |
