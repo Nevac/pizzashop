@@ -65,7 +65,7 @@ paths:
       operationId: delete-pizza-id
       responses:
         '204':
-          description: No Content
+          description: Deleted Pizza
         '404':
           description: Pizza Not Found
         '500':
@@ -127,7 +127,7 @@ paths:
             example: 'name:Margharita,''price>13,'
           in: query
           name: search
-          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than), ~ (like).  If a query is invalid, an empty list is returned.'
+          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than).  If a query is invalid, an empty list is returned.'
   /order:
     get:
       summary: Your GET endpoint
@@ -147,7 +147,7 @@ paths:
             type: string
           in: query
           name: search
-          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than), ~ (like).  If a query is invalid, an empty list is returned.'
+          description: 'Dynamic query, format search={key1}{operator}{value1},{key2}{operator}{value2},... The values have per default an AND relation, for OR use '' in front of a key. Supported operators are : (equals), ! (negation), > (greater than), < (less than).  If a query is invalid, an empty list is returned.'
     post:
       summary: ''
       operationId: post-order
@@ -241,7 +241,7 @@ paths:
       operationId: delete-order-id
       responses:
         '204':
-          description: No Content
+          description: Deleted Order
         '404':
           description: Order Not Found
         '500':
