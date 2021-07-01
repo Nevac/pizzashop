@@ -1,8 +1,6 @@
 package ch.cagatay.pizzashop.specifications;
 
-import com.google.common.base.Joiner;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -16,29 +14,10 @@ public class SpecificationBuilder<T> {
         params = new ArrayList<>();
     }
 
-    // API
-
-    public final SpecificationBuilder with(final String key, final String operation, final Object value,
-                                                final String prefix, final String suffix) {
-        return with(null, key, operation, value, prefix, suffix);
-    }
-
     public final SpecificationBuilder with(final String orPredicate, final String key, final String operation,
-                                                final Object value, final String prefix, final String suffix) {
+                                                final Object value) {
         SearchOperation op = SearchOperation.getSimpleOperation(operation.charAt(0));
         if (op != null) {
-            if (op == SearchOperation.EQUALITY) {
-                final boolean startWithAsterisk = prefix != null && prefix.contains(SearchOperation.ZERO_OR_MORE_REGEX);
-                final boolean endWithAsterisk = suffix != null && suffix.contains(SearchOperation.ZERO_OR_MORE_REGEX);
-
-                if (startWithAsterisk && endWithAsterisk) {
-                    op = SearchOperation.CONTAINS;
-                } else if (startWithAsterisk) {
-                    op = SearchOperation.ENDS_WITH;
-                } else if (endWithAsterisk) {
-                    op = SearchOperation.STARTS_WITH;
-                }
-            }
             params.add(new SearchCriteria(orPredicate, key, op, value));
         }
         return this;
@@ -70,15 +49,13 @@ public class SpecificationBuilder<T> {
     }
 
     public static<V> Specification<V> buildSpecificationFromString(String search) {
-        SpecificationBuilder<V> builder = new SpecificationBuilder<>();
-        String operationSetExper = Joiner.on("|")
-                .join(SearchOperation.SIMPLE_OPERATION_SET);
+        SpecificationBuilder<V> builder = new SpecificationBuilder<>();;
+        String operationSetExper = String.join("|", SearchOperation.SIMPLE_OPERATION_SET);
         Pattern pattern = Pattern
-                .compile("(\\p{Punct}?)(\\w+?)(" + operationSetExper + ")(\\p{Punct}?)(\\w+( +\\w+)*$?)(\\p{Punct}?),");
+                .compile("(\\p{Punct}?)(\\w+?)(" + operationSetExper + ")(\\w+( +\\w+)*$?),");
         Matcher matcher = pattern.matcher(search + ",");
         while (matcher.find()) {
-            builder.with(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(5), matcher.group(4),
-                    matcher.group(6));
+            builder.with(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(4));
         }
 
         return builder.build();

@@ -30,14 +30,6 @@ public class GeneralSpecification<T> implements Specification<T> {
                 return criteriaBuilder.greaterThan(root.get(criteria.getKey()), criteria.getValue().toString());
             case LESS_THAN:
                 return criteriaBuilder.lessThan(root.get(criteria.getKey()), criteria.getValue().toString());
-            case LIKE:
-                return criteriaBuilder.like(root.get(criteria.getKey()), criteria.getValue().toString());
-            case STARTS_WITH:
-                return criteriaBuilder.like(root.get(criteria.getKey()), criteria.getValue() + "%");
-            case ENDS_WITH:
-                return criteriaBuilder.like(root.get(criteria.getKey()), "%" + criteria.getValue());
-            case CONTAINS:
-                return criteriaBuilder.like(root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
             default:
                 return null;
         }
