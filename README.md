@@ -19,7 +19,6 @@ I present my solution for the pizzashop assignment given by ti&m.
 - Unit Tests for Service layer
 - Unit Tests for Specifications (For flexible querying)
 - Integration Tests for Controller layer
-- Postman collection
 - Flexible querying for pizzas and orders
 
 ### Setting up the project
